@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 # app/controllers/todos_controller.rb
 class TodosController < ApplicationController
-  before_action :set_todo, only: [:show, :update, :destroy]
+  before_action :find_todo, only: %i[show update destroy]
 
   # GET /todos
   def index
@@ -38,7 +40,7 @@ class TodosController < ApplicationController
     params.permit(:title, :created_by)
   end
 
-  def set_todo
+  def find_todo
     @todo = Todo.find(params[:id])
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # spec/requests/items_spec.rb
 require 'rails_helper'
 
@@ -89,7 +91,7 @@ RSpec.describe 'Items API' do
 
   # Test suite for PUT /todos/:todo_id/items/:id
   describe 'PUT /todos/:todo_id/items/:id' do
-    let(:valid_attributes) { { name: 'Mozart' } }
+    let(:valid_attributes) { { name: 'David' } }
 
     before { put "/todos/#{todo_id}/items/#{id}", params: valid_attributes }
 
@@ -100,7 +102,7 @@ RSpec.describe 'Items API' do
 
       it 'updates the item' do
         updated_item = Item.find(id)
-        expect(updated_item.name).to match(/Mozart/)
+        expect(updated_item.name).to match(/David/)
       end
     end
 
