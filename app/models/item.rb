@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # app/models/item.rb
 class Item < ApplicationRecord
   # model association

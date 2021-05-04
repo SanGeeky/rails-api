@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 # app/controllers/items_controller.rb
 class ItemsController < ApplicationController
-  before_action :set_todo
-  before_action :set_todo_item, only: [:show, :update, :destroy]
+  before_action :find_todo
+  before_action :set_todo_item, only: %i[show update destroy]
 
   # GET /todos/:todo_id/items
   def index
@@ -37,11 +39,11 @@ class ItemsController < ApplicationController
     params.permit(:name, :done)
   end
 
-  def set_todo
+  def find_todo
     @todo = Todo.find(params[:todo_id])
   end
 
-  def set_todo_item
+  def find_todo_item
     @item = @todo.items.find_by!(id: params[:id]) if @todo
   end
 end
