@@ -18,20 +18,8 @@ RSpec.describe 'Todos API', type: :request do
   end
 
   # Login and generate Token
-  let(:auth) do
-    post user_session_path,
-         params: login_params.to_json,
-         headers: {
-           CONTENT_TYPE: 'application/json',
-           ACCEPT: 'application/json'
-         }
-    headers = {
-      'access-token': response.headers['access-token'],
-      'client': response.headers['client'],
-      'uid': response.headers['uid'],
-      'expiry': response.headers['expiry'],
-      'token-type': response.headers['token-type']
-    }
+  def auth
+    user.create_new_auth_token
   end
 
   # Test suite for GET /todos
@@ -120,6 +108,7 @@ RSpec.describe 'Todos API', type: :request do
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
       end
+
       it 'updates the record' do
         expect(response.body).to be_empty
       end
@@ -133,6 +122,7 @@ RSpec.describe 'Todos API', type: :request do
     it 'returns status code 204' do
       expect(response).to have_http_status(204)
     end
+
     it 'deletes the record' do
       expect(response.body).to be_empty
     end

@@ -19,21 +19,9 @@ RSpec.describe 'Items API' do
     }
   end
 
-  # Login and generate Token
-  let(:auth) do
-    post user_session_path,
-         params: login_params.to_json,
-         headers: {
-           CONTENT_TYPE: 'application/json',
-           ACCEPT: 'application/json'
-         }
-    headers = {
-      'access-token': response.headers['access-token'],
-      'client': response.headers['client'],
-      'uid': response.headers['uid'],
-      'expiry': response.headers['expiry'],
-      'token-type': response.headers['token-type']
-    }
+  # Create Auth Token
+  def auth
+    user.create_new_auth_token
   end
 
   # Test suite for GET /todos/:todo_id/items

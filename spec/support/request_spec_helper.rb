@@ -4,6 +4,6 @@
 module RequestSpecHelper
   # Parse JSON response to ruby hash
   def json
-    JSON.parse(response.body)
+    !response.nil? ? JSON.parse(response.body) : JSON.parse(subject.body)
   end
 end
