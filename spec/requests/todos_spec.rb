@@ -76,7 +76,7 @@ RSpec.describe 'Todos API', type: :request do
 
       it 'creates a todo' do
         expect(json['title']).to eq('Learn Ruby')
-        expect(json['created_by']).to eq('1')
+        expect(json['items'].length).to eq(0)
       end
 
       it 'returns status code 201' do
@@ -85,15 +85,14 @@ RSpec.describe 'Todos API', type: :request do
     end
 
     context 'todo params are invalid' do
-      before { post '/todos', params: { title: 'Foobar' }, headers: auth }
+      before { post '/todos', params: { title: 'Run Away' }, headers: auth }
 
       it 'returns status code 422' do
         expect(response).to have_http_status(422)
       end
 
       it 'returns a validation failure message' do
-        expect(response.body)
-          .to match(/Validation failed: Created by can't be blank/)
+        expect(json['message']).to eq("Validation failed: Created by can't be blank")
       end
     end
   end
