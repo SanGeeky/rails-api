@@ -8,10 +8,24 @@ RSpec.describe 'Todos API', type: :request do
   let!(:todos) { create_list(:todo, 10) }
   let(:todo_id) { todos.first.id }
 
+  # Create User
+  let(:user) { create :user }
+  let(:login_params) do
+    {
+      email: user.email,
+      password: user.password
+    }
+  end
+
+  # Login and generate Token
+  def auth
+    user.create_new_auth_token
+  end
+
   # Test suite for GET /todos
   describe 'GET /todos' do
     # make HTTP get request before each example
-    before { get '/todos' }
+    before { get '/todos', headers: auth }
 
     it 'returns todos' do
       # Note `json` is a custom helper to parse JSON responses
@@ -26,9 +40,9 @@ RSpec.describe 'Todos API', type: :request do
 
   # Test suite for GET /todos/:id
   describe 'GET /todos/:id' do
-    before { get "/todos/#{todo_id}" }
+    before { get "/todos/#{todo_id}", headers: auth }
 
-    context 'when the record exists' do
+    context 'todo record exists' do
       it 'returns the todo' do
         expect(json).not_to be_empty
         expect(json['id']).to eq(todo_id)
@@ -39,7 +53,7 @@ RSpec.describe 'Todos API', type: :request do
       end
     end
 
-    context 'when the record does not exist' do
+    context 'todo record does not exist' do
       let(:todo_id) { 100 }
 
       it 'returns status code 404' do
@@ -57,8 +71,8 @@ RSpec.describe 'Todos API', type: :request do
     # valid payload
     let(:valid_attributes) { { title: 'Learn Ruby', created_by: '1' } }
 
-    context 'when the request is valid' do
-      before { post '/todos', params: valid_attributes }
+    context 'todo params are invalid' do
+      before { post '/todos', params: valid_attributes, headers: auth }
 
       it 'creates a todo' do
         expect(json['title']).to eq('Learn Ruby')
@@ -70,8 +84,8 @@ RSpec.describe 'Todos API', type: :request do
       end
     end
 
-    context 'when the request is invalid' do
-      before { post '/todos', params: { title: 'Foobar' } }
+    context 'todo params are invalid' do
+      before { post '/todos', params: { title: 'Foobar' }, headers: auth }
 
       it 'returns status code 422' do
         expect(response).to have_http_status(422)
@@ -88,25 +102,29 @@ RSpec.describe 'Todos API', type: :request do
   describe 'PUT /todos/:id' do
     let(:valid_attributes) { { title: 'Shopping' } }
 
-    context 'when the record exists' do
-      before { put "/todos/#{todo_id}", params: valid_attributes }
-
-      it 'updates the record' do
-        expect(response.body).to be_empty
-      end
+    context 'todo record exists' do
+      before { put "/todos/#{todo_id}", params: valid_attributes, headers: auth }
 
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
+      end
+
+      it 'updates the record' do
+        expect(response.body).to be_empty
       end
     end
   end
 
   # Test suite for DELETE /todos/:id
   describe 'DELETE /todos/:id' do
-    before { delete "/todos/#{todo_id}" }
+    before { delete "/todos/#{todo_id}", headers: auth }
 
     it 'returns status code 204' do
       expect(response).to have_http_status(204)
+    end
+
+    it 'deletes the record' do
+      expect(response.body).to be_empty
     end
   end
 end

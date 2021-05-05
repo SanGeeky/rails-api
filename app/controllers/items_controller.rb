@@ -2,6 +2,7 @@
 
 # app/controllers/items_controller.rb
 class ItemsController < ApplicationController
+  before_action :authenticate_user!
   before_action :find_todo
   before_action :find_todo_item, only: %i[show update destroy]
 

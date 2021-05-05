@@ -10,11 +10,25 @@ RSpec.describe 'Items API' do
   let(:todo_id) { todo.id }
   let(:id) { items.first.id }
 
+  # Create User
+  let(:user) { create :user }
+  let(:login_params) do
+    {
+      email: user.email,
+      password: user.password
+    }
+  end
+
+  # Create Auth Token
+  def auth
+    user.create_new_auth_token
+  end
+
   # Test suite for GET /todos/:todo_id/items
   describe 'GET /todos/:todo_id/items' do
-    before { get "/todos/#{todo_id}/items" }
+    before { get "/todos/#{todo_id}/items", headers: auth }
 
-    context 'when todo exists' do
+    context 'todo exists' do
       it 'returns status code 200' do
         expect(response).to have_http_status(200)
       end
@@ -24,7 +38,7 @@ RSpec.describe 'Items API' do
       end
     end
 
-    context 'when todo does not exist' do
+    context 'todo does not exist' do
       let(:todo_id) { 0 }
 
       it 'returns status code 404' do
@@ -39,9 +53,9 @@ RSpec.describe 'Items API' do
 
   # Test suite for GET /todos/:todo_id/items/:id
   describe 'GET /todos/:todo_id/items/:id' do
-    before { get "/todos/#{todo_id}/items/#{id}" }
+    before { get "/todos/#{todo_id}/items/#{id}", headers: auth }
 
-    context 'when todo item exists' do
+    context 'todo item exists' do
       it 'returns status code 200' do
         expect(response).to have_http_status(200)
       end
@@ -51,7 +65,7 @@ RSpec.describe 'Items API' do
       end
     end
 
-    context 'when todo item does not exist' do
+    context 'todo item does not exist' do
       let(:id) { 0 }
 
       it 'returns status code 404' do
@@ -68,16 +82,16 @@ RSpec.describe 'Items API' do
   describe 'POST /todos/:todo_id/items' do
     let(:valid_attributes) { { name: 'Visit Narnia', done: false } }
 
-    context 'when request attributes are valid' do
-      before { post "/todos/#{todo_id}/items", params: valid_attributes }
+    context 'items attributes are valid' do
+      before { post "/todos/#{todo_id}/items", params: valid_attributes, headers: auth }
 
       it 'returns status code 201' do
         expect(response).to have_http_status(201)
       end
     end
 
-    context 'when an invalid request' do
-      before { post "/todos/#{todo_id}/items", params: {} }
+    context 'item attributes are not valid' do
+      before { post "/todos/#{todo_id}/items", params: {}, headers: auth }
 
       it 'returns status code 422' do
         expect(response).to have_http_status(422)
@@ -93,20 +107,20 @@ RSpec.describe 'Items API' do
   describe 'PUT /todos/:todo_id/items/:id' do
     let(:valid_attributes) { { name: 'David' } }
 
-    before { put "/todos/#{todo_id}/items/#{id}", params: valid_attributes }
+    before { put "/todos/#{todo_id}/items/#{id}", params: valid_attributes, headers: auth }
 
-    context 'when item exists' do
+    context 'item exists' do
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
       end
 
       it 'updates the item' do
         updated_item = Item.find(id)
-        expect(updated_item.name).to match(/David/)
+        expect(updated_item.name).to eq('David')
       end
     end
 
-    context 'when the item does not exist' do
+    context 'item does not exist' do
       let(:id) { 0 }
 
       it 'returns status code 404' do
@@ -121,10 +135,13 @@ RSpec.describe 'Items API' do
 
   # Test suite for DELETE /todos/:id
   describe 'DELETE /todos/:id' do
-    before { delete "/todos/#{todo_id}/items/#{id}" }
+    before { delete "/todos/#{todo_id}/items/#{id}", headers: auth }
 
     it 'returns status code 204' do
       expect(response).to have_http_status(204)
+    end
+    it 'deletes the record' do
+      expect(response.body).to be_empty
     end
   end
 end
