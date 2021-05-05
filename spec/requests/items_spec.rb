@@ -19,21 +19,28 @@ RSpec.describe 'Items API' do
     }
   end
 
-  # Login and generate Token in each example
-  before(:each) do
-    post user_session_path, params: login_params, as: :json
-    @headers = {
-      'uid': response.headers['uid'],
+  # Login and generate Token
+  let(:auth) do
+    post user_session_path,
+         params: login_params.to_json,
+         headers: {
+           CONTENT_TYPE: 'application/json',
+           ACCEPT: 'application/json'
+         }
+    headers = {
+      'access-token': response.headers['access-token'],
       'client': response.headers['client'],
-      'access-token': response.headers['access-token']
+      'uid': response.headers['uid'],
+      'expiry': response.headers['expiry'],
+      'token-type': response.headers['token-type']
     }
   end
 
   # Test suite for GET /todos/:todo_id/items
   describe 'GET /todos/:todo_id/items' do
-    before { get "/todos/#{todo_id}/items", headers: @headers }
+    before { get "/todos/#{todo_id}/items", headers: auth }
 
-    context 'when todo exists' do
+    context 'todo exists' do
       it 'returns status code 200' do
         expect(response).to have_http_status(200)
       end
@@ -43,7 +50,7 @@ RSpec.describe 'Items API' do
       end
     end
 
-    context 'when todo does not exist' do
+    context 'todo does not exist' do
       let(:todo_id) { 0 }
 
       it 'returns status code 404' do
@@ -58,9 +65,9 @@ RSpec.describe 'Items API' do
 
   # Test suite for GET /todos/:todo_id/items/:id
   describe 'GET /todos/:todo_id/items/:id' do
-    before { get "/todos/#{todo_id}/items/#{id}", headers: @headers }
+    before { get "/todos/#{todo_id}/items/#{id}", headers: auth }
 
-    context 'when todo item exists' do
+    context 'todo item exists' do
       it 'returns status code 200' do
         expect(response).to have_http_status(200)
       end
@@ -70,7 +77,7 @@ RSpec.describe 'Items API' do
       end
     end
 
-    context 'when todo item does not exist' do
+    context 'todo item does not exist' do
       let(:id) { 0 }
 
       it 'returns status code 404' do
@@ -85,18 +92,18 @@ RSpec.describe 'Items API' do
 
   # Test suite for PUT /todos/:todo_id/items
   describe 'POST /todos/:todo_id/items' do
-    let(:valid_attributes) { { name: 'Visit Narnia', done: false, headers: @headers } }
+    let(:valid_attributes) { { name: 'Visit Narnia', done: false } }
 
-    context 'when request attributes are valid' do
-      before { post "/todos/#{todo_id}/items", params: valid_attributes, headers: @headers }
+    context 'items attributes are valid' do
+      before { post "/todos/#{todo_id}/items", params: valid_attributes, headers: auth }
 
       it 'returns status code 201' do
         expect(response).to have_http_status(201)
       end
     end
 
-    context 'when an invalid request' do
-      before { post "/todos/#{todo_id}/items", params: {}, headers: @headers }
+    context 'item attributes are not valid' do
+      before { post "/todos/#{todo_id}/items", params: {}, headers: auth }
 
       it 'returns status code 422' do
         expect(response).to have_http_status(422)
@@ -112,20 +119,20 @@ RSpec.describe 'Items API' do
   describe 'PUT /todos/:todo_id/items/:id' do
     let(:valid_attributes) { { name: 'David' } }
 
-    before { put "/todos/#{todo_id}/items/#{id}", params: valid_attributes, headers: @headers }
+    before { put "/todos/#{todo_id}/items/#{id}", params: valid_attributes, headers: auth }
 
-    context 'when item exists' do
+    context 'item exists' do
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
       end
 
       it 'updates the item' do
         updated_item = Item.find(id)
-        expect(updated_item.name).to match(/David/)
+        expect(updated_item.name).to eq('David')
       end
     end
 
-    context 'when the item does not exist' do
+    context 'item does not exist' do
       let(:id) { 0 }
 
       it 'returns status code 404' do
@@ -140,10 +147,13 @@ RSpec.describe 'Items API' do
 
   # Test suite for DELETE /todos/:id
   describe 'DELETE /todos/:id' do
-    before { delete "/todos/#{todo_id}/items/#{id}", headers: @headers }
+    before { delete "/todos/#{todo_id}/items/#{id}", headers: auth }
 
     it 'returns status code 204' do
       expect(response).to have_http_status(204)
+    end
+    it 'deletes the record' do
+      expect(response.body).to be_empty
     end
   end
 end

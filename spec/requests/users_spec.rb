@@ -8,30 +8,32 @@ RSpec.describe 'Registration', type: :request do
       password_confirmation: '12345678'
     }
   end
+  let(:signup) do
+    post user_registration_path, params: signup_params
+    response
+  end
 
   describe 'User registration' do
     describe 'POST /auth/' do
       context 'signup with valid params' do
-        before { post user_registration_path, params: signup_params }
-
-        it { expect(response).to have_http_status(200) }
+        it { expect(signup).to have_http_status(200) }
         it 'returns authentication header with right attributes' do
-          expect(response.headers['access-token']).to be_present
+          expect(signup.headers['access-token']).to be_present
         end
         it 'returns client in authentication header' do
-          expect(response.headers['client']).to be_present
+          expect(signup.headers['client']).to be_present
         end
         it 'returns expiry in authentication header' do
-          expect(response.headers['expiry']).to be_present
+          expect(signup.headers['expiry']).to be_present
         end
         it 'returns uid in authentication header' do
-          expect(response.headers['uid']).to be_present
+          expect(signup.headers['uid']).to be_present
         end
         it 'returns status success' do
-          expect(response.body).to match(/success/)
+          expect(signup.body).to match(/success/)
         end
         it 'returns user email' do
-          parsed_response = JSON.parse(response.body)
+          parsed_response = JSON.parse(signup.body)
           expect(parsed_response['data']['email']).to eq(signup_params[:email])
         end
         it 'creates new user' do
@@ -41,6 +43,7 @@ RSpec.describe 'Registration', type: :request do
           end.to change(User, :count).by(1)
         end
       end
+
       context 'signup with not valid params' do
         before { post user_registration_path }
 
